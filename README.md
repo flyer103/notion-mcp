@@ -36,6 +36,13 @@ Before using the Notion MCP server, you need to set up a Notion integration and 
 export NOTION_API_KEY="your_api_key_here"
 ```
 
+4. Share your Notion content with the integration:
+   - Open the Notion page you want to access
+   - Click the "..." menu in the top-right corner
+   - Select "Add connections"
+   - Find and select your integration from the list
+   - The integration now has access to this page and all its subpages
+
 ## Usage
 
 The Notion MCP server supports two transport methods:
