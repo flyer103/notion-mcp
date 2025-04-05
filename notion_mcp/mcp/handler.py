@@ -273,6 +273,134 @@ def get_notion_capabilities() -> List[Capability]:
             ],
             category=Category.SEARCH,
         ),
+        Capability(
+            name="create_database",
+            description="Create a new Notion database",
+            type=CapabilityType.OPERATION,
+            parameters=[
+                Parameter(
+                    name="parent",
+                    description="Parent object (page_id)",
+                    type="object",
+                    required=True,
+                ),
+                Parameter(
+                    name="title",
+                    description="Title of the database",
+                    type="array",
+                    required=True,
+                ),
+                Parameter(
+                    name="properties",
+                    description="Database properties schema",
+                    type="object",
+                    required=True,
+                ),
+                Parameter(
+                    name="icon",
+                    description="Icon object",
+                    type="object",
+                    required=False,
+                ),
+                Parameter(
+                    name="cover",
+                    description="Cover object",
+                    type="object",
+                    required=False,
+                ),
+                Parameter(
+                    name="is_inline",
+                    description="Whether the database is inline",
+                    type="boolean",
+                    required=False,
+                ),
+            ],
+            category=Category.DATABASE,
+        ),
+        Capability(
+            name="update_database",
+            description="Update a Notion database",
+            type=CapabilityType.OPERATION,
+            parameters=[
+                Parameter(
+                    name="database_id",
+                    description="The ID of the database to update",
+                    type="string",
+                    required=True,
+                ),
+                Parameter(
+                    name="title",
+                    description="Title of the database",
+                    type="array",
+                    required=False,
+                ),
+                Parameter(
+                    name="properties",
+                    description="Database properties schema",
+                    type="object",
+                    required=False,
+                ),
+                Parameter(
+                    name="icon",
+                    description="Icon object",
+                    type="object",
+                    required=False,
+                ),
+                Parameter(
+                    name="cover",
+                    description="Cover object",
+                    type="object",
+                    required=False,
+                ),
+                Parameter(
+                    name="is_inline",
+                    description="Whether the database is inline",
+                    type="boolean",
+                    required=False,
+                ),
+            ],
+            category=Category.DATABASE,
+        ),
+        Capability(
+            name="create_comment",
+            description="Create a Notion comment",
+            type=CapabilityType.OPERATION,
+            parameters=[
+                Parameter(
+                    name="parent",
+                    description="Parent object (page_id or block_id)",
+                    type="object",
+                    required=True,
+                ),
+                Parameter(
+                    name="rich_text",
+                    description="Rich text content of the comment",
+                    type="array",
+                    required=True,
+                ),
+                Parameter(
+                    name="discussion_id",
+                    description="ID of the discussion thread",
+                    type="string",
+                    required=False,
+                ),
+            ],
+            category=Category.BLOCK,
+        ),
+        Capability(
+            name="get_comment",
+            description="Retrieve a Notion comment",
+            type=CapabilityType.QUERY,
+            parameters=[
+                Parameter(
+                    name="comment_id",
+                    description="The ID of the comment to get",
+                    type="string",
+                    required=True,
+                ),
+            ],
+            category=Category.BLOCK,
+        ),
     ]
 
 
@@ -300,49 +428,57 @@ class NotionMCPHandler(mcp.types.MCPHandler):
         """Handle a query capability.
         
         Args:
-            capability_name: The name of the capability to invoke
-            params: The parameters for the capability
+            capability_name: Capability name
+            params: Parameters for the capability
             context: Request context
             
         Returns:
-            The result of the query
+            Query response
         """
+        client = NotionClient()
+        
         if capability_name == "get_page":
             request = GetPageRequest(**params)
-            result = self.notion_client.get_page(request.page_id)
-            return result.dict()
+            return client.get_page(request.page_id).dict()
         
         elif capability_name == "get_database":
             request = GetDatabaseRequest(**params)
-            result = self.notion_client.get_database(request.database_id)
-            return result.dict()
+            return client.get_database(request.database_id).dict()
         
         elif capability_name == "query_database":
             request = QueryDatabaseRequest(**params)
-            result = self.notion_client.query_database(
+            return client.query_database(
                 database_id=request.database_id,
                 filter=request.filter,
                 sorts=request.sorts,
                 start_cursor=request.start_cursor,
                 page_size=request.page_size,
             )
-            return result
         
         elif capability_name == "get_block":
             request = GetBlockRequest(**params)
-            result = self.notion_client.get_block(request.block_id)
-            return result.dict()
+            return client.get_block(request.block_id).dict()
         
         elif capability_name == "list_blocks":
             request = ListBlocksRequest(**params)
-            result = self.notion_client.list_blocks(
+            from notion_mcp.api.client import ListBlocksParams
+            
+            list_params = None
+            if request.start_cursor or request.page_size:
+                list_params = ListBlocksParams(
+                    start_cursor=request.start_cursor,
+                    page_size=request.page_size,
+                )
+            
+            return client.list_blocks(
                 block_id=request.block_id,
-                params=request,
+                params=list_params,
             )
-            return result
         
         elif capability_name == "search":
             request = SearchRequest(**params)
+            from notion_mcp.api.client import SearchParams
+            
             search_params = SearchParams(
                 query=request.query,
                 sort=request.sort,
@@ -350,8 +486,12 @@ class NotionMCPHandler(mcp.types.MCPHandler):
                 start_cursor=request.start_cursor,
                 page_size=request.page_size,
             )
-            result = self.notion_client.search(search_params)
-            return result
+            
+            return client.search(search_params)
+        
+        elif capability_name == "get_comment":
+            request = GetCommentRequest(**params)
+            return client.get_comment(request.comment_id)
         
         else:
             raise ValueError(f"Unknown query capability: {capability_name}")
@@ -365,50 +505,77 @@ class NotionMCPHandler(mcp.types.MCPHandler):
         """Handle an operation capability.
         
         Args:
-            capability_name: The name of the capability to invoke
-            params: The parameters for the capability
+            capability_name: Capability name
+            params: Parameters for the capability
             context: Request context
             
         Returns:
-            The result of the operation
+            Operation response
         """
-        if capability_name == "update_page":
-            request = UpdatePageRequest(**params)
-            result = self.notion_client.update_page(
-                page_id=request.page_id,
-                properties=request.properties,
-            )
-            return result.dict()
+        client = NotionClient()
         
-        elif capability_name == "create_page":
+        if capability_name == "create_page":
             request = CreatePageRequest(**params)
-            result = self.notion_client.create_page(
+            return client.create_page(
                 parent=request.parent,
                 properties=request.properties,
                 children=request.children,
-            )
-            return result.dict()
+            ).dict()
+        
+        elif capability_name == "update_page":
+            request = UpdatePageRequest(**params)
+            return client.update_page(
+                page_id=request.page_id,
+                properties=request.properties,
+            ).dict()
         
         elif capability_name == "update_block":
             request = UpdateBlockRequest(**params)
-            result = self.notion_client.update_block(
+            return client.update_block(
                 block_id=request.block_id,
                 content=request.content,
-            )
-            return result.dict()
+            ).dict()
         
         elif capability_name == "append_blocks":
             request = AppendBlocksRequest(**params)
-            result = self.notion_client.append_blocks(
+            return client.append_blocks(
                 block_id=request.block_id,
                 children=request.children,
             )
-            return result
         
         elif capability_name == "delete_block":
             request = DeleteBlockRequest(**params)
-            result = self.notion_client.delete_block(request.block_id)
-            return result.dict()
+            return client.delete_block(request.block_id).dict()
+
+        elif capability_name == "create_database":
+            request = CreateDatabaseRequest(**params)
+            return client.create_database(
+                parent=request.parent,
+                title=request.title,
+                properties=request.properties,
+                icon=request.icon,
+                cover=request.cover,
+                is_inline=request.is_inline,
+            ).dict()
+        
+        elif capability_name == "update_database":
+            request = UpdateDatabaseRequest(**params)
+            return client.update_database(
+                database_id=request.database_id,
+                title=request.title,
+                properties=request.properties,
+                icon=request.icon,
+                cover=request.cover,
+                is_inline=request.is_inline,
+            ).dict()
+        
+        elif capability_name == "create_comment":
+            request = CreateCommentRequest(**params)
+            return client.create_comment(
+                parent=request.parent,
+                rich_text=request.rich_text,
+                discussion_id=request.discussion_id,
+            )
         
         else:
             raise ValueError(f"Unknown operation capability: {capability_name}")

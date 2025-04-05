@@ -289,6 +289,124 @@ def create_server() -> Server:
             )
         )
         
+        # Database creation and update tools
+        tools.append(
+            types.Tool(
+                name="create_database",
+                description="Create a new Notion database",
+                inputSchema={
+                    "type": "object",
+                    "required": ["parent", "title", "properties"],
+                    "properties": {
+                        "parent": {
+                            "type": "object",
+                            "description": "Parent object (page_id)",
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "Title of the database",
+                        },
+                        "properties": {
+                            "type": "object",
+                            "description": "Database properties",
+                        },
+                        "icon": {
+                            "type": "object",
+                            "description": "Icon for the database",
+                        },
+                        "cover": {
+                            "type": "object",
+                            "description": "Cover for the database",
+                        },
+                        "is_inline": {
+                            "type": "boolean",
+                            "description": "Whether the database is inline",
+                        }
+                    },
+                },
+            )
+        )
+        
+        tools.append(
+            types.Tool(
+                name="update_database",
+                description="Update a Notion database",
+                inputSchema={
+                    "type": "object",
+                    "required": ["database_id"],
+                    "properties": {
+                        "database_id": {
+                            "type": "string",
+                            "description": "The ID of the database to update",
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "New title for the database",
+                        },
+                        "properties": {
+                            "type": "object",
+                            "description": "Updated database properties",
+                        },
+                        "icon": {
+                            "type": "object",
+                            "description": "Updated icon for the database",
+                        },
+                        "cover": {
+                            "type": "object",
+                            "description": "Updated cover for the database",
+                        },
+                        "is_inline": {
+                            "type": "boolean",
+                            "description": "Whether the database is inline",
+                        }
+                    },
+                },
+            )
+        )
+        
+        # Comment tools
+        tools.append(
+            types.Tool(
+                name="create_comment",
+                description="Create a new Notion comment",
+                inputSchema={
+                    "type": "object",
+                    "required": ["parent", "rich_text"],
+                    "properties": {
+                        "parent": {
+                            "type": "object",
+                            "description": "Parent object (page_id or block_id)",
+                        },
+                        "rich_text": {
+                            "type": "array",
+                            "description": "Rich text content for the comment",
+                        },
+                        "discussion_id": {
+                            "type": "string",
+                            "description": "ID of the discussion to add the comment to",
+                        }
+                    },
+                },
+            )
+        )
+        
+        tools.append(
+            types.Tool(
+                name="get_comment",
+                description="Get a Notion comment by ID",
+                inputSchema={
+                    "type": "object",
+                    "required": ["comment_id"],
+                    "properties": {
+                        "comment_id": {
+                            "type": "string",
+                            "description": "The ID of the comment to get",
+                        }
+                    },
+                },
+            )
+        )
+        
         return tools
     
     @app.call_tool()
@@ -379,6 +497,36 @@ def create_server() -> Server:
                 )
                 
                 result = notion_client.search(params)
+            
+            elif name == "create_database":
+                result = notion_client.create_database(
+                    parent=arguments["parent"],
+                    title=arguments["title"],
+                    properties=arguments["properties"],
+                    icon=arguments.get("icon"),
+                    cover=arguments.get("cover"),
+                    is_inline=arguments.get("is_inline"),
+                )
+            
+            elif name == "update_database":
+                result = notion_client.update_database(
+                    database_id=arguments["database_id"],
+                    title=arguments.get("title"),
+                    properties=arguments.get("properties"),
+                    icon=arguments.get("icon"),
+                    cover=arguments.get("cover"),
+                    is_inline=arguments.get("is_inline"),
+                )
+            
+            elif name == "create_comment":
+                result = notion_client.create_comment(
+                    parent=arguments["parent"],
+                    rich_text=arguments["rich_text"],
+                    discussion_id=arguments.get("discussion_id"),
+                )
+            
+            elif name == "get_comment":
+                result = notion_client.get_comment(arguments["comment_id"])
             
             else:
                 raise ValueError(f"Unknown tool: {name}")

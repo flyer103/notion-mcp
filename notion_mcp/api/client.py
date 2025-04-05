@@ -300,4 +300,118 @@ class NotionClient:
             data["children"] = children
         
         response = self._make_request("POST", "/v1/pages", data=data)
-        return Page(**response) 
+        return Page(**response)
+    
+    def create_database(
+        self,
+        parent: Dict[str, Any],
+        title: List[Dict[str, Any]],
+        properties: Dict[str, Any],
+        icon: Optional[Dict[str, Any]] = None,
+        cover: Optional[Dict[str, Any]] = None,
+        is_inline: Optional[bool] = None,
+    ) -> Database:
+        """Create a new database.
+        
+        Args:
+            parent: Parent object (page_id)
+            title: Title of the database
+            properties: Database properties schema
+            icon: Icon object
+            cover: Cover object
+            is_inline: Whether the database is inline
+            
+        Returns:
+            Created database object
+        """
+        data = {
+            "parent": parent,
+            "title": title,
+            "properties": properties,
+        }
+        if icon:
+            data["icon"] = icon
+        if cover:
+            data["cover"] = cover
+        if is_inline is not None:
+            data["is_inline"] = is_inline
+        
+        response = self._make_request("POST", "/v1/databases", data=data)
+        return Database(**response)
+    
+    def update_database(
+        self,
+        database_id: str,
+        title: Optional[List[Dict[str, Any]]] = None,
+        properties: Optional[Dict[str, Any]] = None,
+        icon: Optional[Dict[str, Any]] = None,
+        cover: Optional[Dict[str, Any]] = None,
+        is_inline: Optional[bool] = None,
+    ) -> Database:
+        """Update a database.
+        
+        Args:
+            database_id: Database ID
+            title: Title of the database
+            properties: Database properties schema
+            icon: Icon object
+            cover: Cover object
+            is_inline: Whether the database is inline
+            
+        Returns:
+            Updated database object
+        """
+        data = {}
+        if title:
+            data["title"] = title
+        if properties:
+            data["properties"] = properties
+        if icon:
+            data["icon"] = icon
+        if cover:
+            data["cover"] = cover
+        if is_inline is not None:
+            data["is_inline"] = is_inline
+        
+        response = self._make_request(
+            "PATCH",
+            f"/v1/databases/{database_id}",
+            data=data,
+        )
+        return Database(**response)
+    
+    def create_comment(
+        self,
+        parent: Dict[str, Any],
+        rich_text: List[Dict[str, Any]],
+        discussion_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Create a comment.
+        
+        Args:
+            parent: Parent object (page_id or block_id)
+            rich_text: Rich text content of the comment
+            discussion_id: ID of the discussion thread
+            
+        Returns:
+            Created comment object
+        """
+        data = {
+            "parent": parent,
+            "rich_text": rich_text,
+        }
+        if discussion_id:
+            data["discussion_id"] = discussion_id
+        
+        return self._make_request("POST", "/v1/comments", data=data)
+    
+    def get_comment(self, comment_id: str) -> Dict[str, Any]:
+        """Get a comment by ID.
+        
+        Args:
+            comment_id: Comment ID
+            
+        Returns:
+            Comment object
+        """
+        return self._make_request("GET", f"/v1/comments/{comment_id}") 

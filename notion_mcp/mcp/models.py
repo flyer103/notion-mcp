@@ -198,6 +198,84 @@ class DeleteBlockRequest(BaseModel):
     block_id: str = Field(..., description="The ID of the block to delete")
 
 
+class CreateDatabaseRequest(BaseModel):
+    """Request to create a database."""
+    
+    parent: Dict[str, Any] = Field(
+        ...,
+        description="Parent object (page_id)",
+    )
+    title: List[Dict[str, Any]] = Field(
+        ...,
+        description="Title of the database",
+    )
+    properties: Dict[str, Any] = Field(
+        ...,
+        description="Database properties schema",
+    )
+    icon: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Icon object",
+    )
+    cover: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Cover object",
+    )
+    is_inline: Optional[bool] = Field(
+        None,
+        description="Whether the database is inline",
+    )
+
+
+class UpdateDatabaseRequest(BaseModel):
+    """Request to update a database."""
+    
+    database_id: str = Field(..., description="The ID of the database to update")
+    title: Optional[List[Dict[str, Any]]] = Field(
+        None,
+        description="Title of the database",
+    )
+    properties: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Database properties schema",
+    )
+    icon: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Icon object",
+    )
+    cover: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Cover object",
+    )
+    is_inline: Optional[bool] = Field(
+        None,
+        description="Whether the database is inline",
+    )
+
+
+class CreateCommentRequest(BaseModel):
+    """Request to create a comment."""
+    
+    parent: Dict[str, Any] = Field(
+        ...,
+        description="Parent object (page_id or block_id)",
+    )
+    rich_text: List[Dict[str, Any]] = Field(
+        ...,
+        description="Rich text content of the comment",
+    )
+    discussion_id: Optional[str] = Field(
+        None,
+        description="ID of the discussion thread",
+    )
+
+
+class GetCommentRequest(BaseModel):
+    """Request to get a comment."""
+    
+    comment_id: str = Field(..., description="The ID of the comment to get")
+
+
 # Union type for all request types
 RequestModel = Union[
     GetPageRequest,
@@ -211,4 +289,8 @@ RequestModel = Union[
     AppendBlocksRequest,
     UpdateBlockRequest,
     DeleteBlockRequest,
+    CreateDatabaseRequest,
+    UpdateDatabaseRequest,
+    CreateCommentRequest,
+    GetCommentRequest,
 ] 
