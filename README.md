@@ -193,24 +193,6 @@ This means Claude Desktop cannot find the `uv` executable in your PATH. To fix t
 
 3. Save the file and restart Claude Desktop.
 
-#### "Server transport closed unexpectedly" Error
-
-// ... existing code ...
-
-## Example Client
-
-For an example of how to call the MCP server programmatically, see the `examples/client_example.py` file.
-
-## Cursor Integration
-
-This project includes an example showing how to integrate with [Cursor](https://cursor.sh/), an AI-powered code editor. The `examples/cursor_example.py` file demonstrates how to:
-
-- Save your project structure and key files to a Notion page
-- Save code snippets from your editor to Notion
-- Create project TODO lists in Notion
-
-To use the Cursor example, set the `NOTION_PAGE_ID` environment variable to your Notion page ID and optionally set `CURSOR_WORKSPACE_DIR` to your project directory.
-
 ## License
 
 This project is licensed under the Apache License 2.0 - see the LICENSE file for details. 
