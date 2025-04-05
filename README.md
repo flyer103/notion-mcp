@@ -77,6 +77,8 @@ The Notion MCP server provides the following capabilities as tools:
 ### Database Operations
 - `get_database`: Get a Notion database by ID
 - `query_database`: Query a Notion database
+- `create_database`: Create a new Notion database
+- `update_database`: Update a Notion database
 
 ### Block Operations
 - `get_block`: Get a Notion block by ID
@@ -84,6 +86,10 @@ The Notion MCP server provides the following capabilities as tools:
 - `list_blocks`: List a block's children
 - `append_blocks`: Append blocks to a block's children
 - `delete_block`: Delete a Notion block
+
+### Comment Operations
+- `create_comment`: Create a new Notion comment
+- `get_comment`: Get a Notion comment by ID
 
 ### Search Operations
 - `search`: Search for Notion objects
@@ -108,7 +114,7 @@ options:
 
 To use this MCP server with Claude for Desktop, you need to create a configuration file:
 
-1. Create a file called `claude_desktop_config.json` (not claude-for-desktop-tools.json) in the following location:
+1. Create a file called `claude_desktop_config.json` in the following location:
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
    - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
    - **Linux**: `~/.config/Claude/claude_desktop_config.json`
@@ -119,7 +125,7 @@ To use this MCP server with Claude for Desktop, you need to create a configurati
 {
   "mcpServers": {
     "notion-mcp": {
-      "command": "uv",
+      "command": "/ABSOLUTE/PATH/TO/YOUR/uv",
       "args": [
         "--directory",
         "/ABSOLUTE/PATH/TO/YOUR/notion-mcp",
@@ -135,9 +141,10 @@ To use this MCP server with Claude for Desktop, you need to create a configurati
 }
 ```
 
-3. Replace `/ABSOLUTE/PATH/TO/YOUR/notion-mcp` with the absolute path to your notion-mcp installation
-4. Replace `your_notion_api_key` with your Notion API key (or you can omit the env section if you've set it as a system environment variable)
-5. Save the file and restart Claude for Desktop
+3. Replace `/ABSOLUTE/PATH/TO/YOUR/uv` with the absolute path to your `uv` executable
+4. Replace `/ABSOLUTE/PATH/TO/YOUR/notion-mcp` with the absolute path to your notion-mcp installation
+5. Replace `your_notion_api_key` with your Notion API key (or you can omit the env section if you've set it as a system environment variable)
+6. Save the file and restart Claude for Desktop
 
 You can check Claude's logs for any MCP-related issues:
 ```bash
