@@ -99,19 +99,117 @@ options:
 
 ## Testing with Claude for Desktop
 
-To use this MCP server with Claude for Desktop:
+To use this MCP server with Claude for Desktop, you need to create a configuration file:
 
-1. Start the server in stdio mode: `python -m notion_mcp.server`
-2. In Claude for Desktop, add a new tool
-3. Follow the prompts to select "Add a server using stdio"
-4. Choose the appropriate executable based on your environment
-5. Provide a name and description for the tool
+1. Create a file called `claude_desktop_config.json` (not claude-for-desktop-tools.json) in the following location:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 
-Claude can now use your Notion MCP server to interact with Notion documents.
+2. Add the following configuration to the file (adjust paths as needed):
+
+```json
+{
+  "mcpServers": {
+    "notion-mcp": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/ABSOLUTE/PATH/TO/YOUR/notion-mcp",
+        "run",
+        "-m",
+        "notion_mcp.server"
+      ],
+      "env": {
+        "NOTION_API_KEY": "your_notion_api_key"
+      }
+    }
+  }
+}
+```
+
+3. Replace `/ABSOLUTE/PATH/TO/YOUR/notion-mcp` with the absolute path to your notion-mcp installation
+4. Replace `your_notion_api_key` with your Notion API key (or you can omit the env section if you've set it as a system environment variable)
+5. Save the file and restart Claude for Desktop
+
+You can check Claude's logs for any MCP-related issues:
+```bash
+# Check Claude's logs for errors
+tail -n 20 -f ~/Library/Logs/Claude/mcp*.log
+```
+
+Claude will now have access to your Notion MCP server and can interact with Notion documents. You can ask Claude to perform actions like "Create a page in Notion" or "Search my Notion workspace."
+
+### Verifying Configuration
+
+To verify that Claude is correctly configured to use your Notion MCP server, you can ask Claude:
+"Can you list the tools you have access to?" or "Can you create a new page in my Notion workspace?"
+
+If there are any connection issues, check that:
+- The configuration file is correctly formatted and in the right location
+- The paths in the configuration are correct
+- Your Notion integration has the proper permissions
+
+### Troubleshooting Common Issues
+
+#### "spawn uv ENOENT" Error
+
+If you encounter this error:
+```
+spawn uv ENOENT {"context":"connection","stack":"Error: spawn uv ENOENT\n at ChildProcess._handle.onexit (node:internal/child_process:285:19)\n at onErrorNT (node:internal/child_process:483:16)\n at process.processTicksAndRejections (node:internal/process/task_queues:82:21)"}
+```
+
+This means Claude Desktop cannot find the `uv` executable in your PATH. To fix this:
+
+1. Find the absolute path to your `uv` executable:
+   ```bash
+   # On macOS/Linux
+   which uv
+
+   # On Windows
+   where uv
+   ```
+
+2. Use the full absolute path in your configuration:
+   ```json
+   {
+     "mcpServers": {
+       "notion-mcp": {
+         "command": "/ABSOLUTE/PATH/TO/YOUR/uv",
+         "args": [
+           "--directory",
+           "/ABSOLUTE/PATH/TO/YOUR/notion-mcp",
+           "run",
+           "-m",
+           "notion_mcp.server"
+         ],
+         "env": {
+           "NOTION_API_KEY": "your_notion_api_key"
+         }
+       }
+     }
+   }
+   ```
+
+3. Save the file and restart Claude Desktop.
+
+#### "Server transport closed unexpectedly" Error
+
+// ... existing code ...
 
 ## Example Client
 
 For an example of how to call the MCP server programmatically, see the `examples/client_example.py` file.
+
+## Cursor Integration
+
+This project includes an example showing how to integrate with [Cursor](https://cursor.sh/), an AI-powered code editor. The `examples/cursor_example.py` file demonstrates how to:
+
+- Save your project structure and key files to a Notion page
+- Save code snippets from your editor to Notion
+- Create project TODO lists in Notion
+
+To use the Cursor example, set the `NOTION_PAGE_ID` environment variable to your Notion page ID and optionally set `CURSOR_WORKSPACE_DIR` to your project directory.
 
 ## License
 

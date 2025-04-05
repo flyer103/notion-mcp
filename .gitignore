@@ -65,4 +65,8 @@ logs/
 .env.production.local
 
 # Notion MCP specific
-config.local.yaml 
+config.local.yaml
+
+# uv package manager
+uv.lock
+.uv/ 
